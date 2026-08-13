@@ -1,0 +1,6 @@
+{
+  "name": "Attack on Titan — Cinematic Interactive Experience",
+  "description": "An unofficial interactive web experience exploring the scale, fear, freedom, and visual mythology of Attack on Titan.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
