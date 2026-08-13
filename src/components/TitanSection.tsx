@@ -1,48 +1,37 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { TITANS_DATA } from '../data/aotData';
 import { soundEngine } from '../utils/soundEngine';
-import { Flame, Shield, ZoomIn, ArrowRight } from 'lucide-react';
+import { Flame, Shield, ZoomIn, Eye, Sparkles, ChevronRight, Zap, Target } from 'lucide-react';
 
 interface TitanSectionProps {
   isSpoilerSafe: boolean;
 }
 
 export const TitanSection: React.FC<TitanSectionProps> = ({ isSpoilerSafe }) => {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const [scrollProgress, setScrollProgress] = useState(0);
   const [activeTitanIndex, setActiveTitanIndex] = useState(0);
-  const [focusMode, setFocusMode] = useState<'normal' | 'close_up' | 'hardened'>('normal');
+  const [viewMode, setViewMode] = useState<'normal' | 'close_up' | 'hardened'>('normal');
 
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const totalScrollable = containerRef.current.scrollHeight - window.innerHeight;
-      if (totalScrollable <= 0) return;
-      const scrolled = -rect.top;
-      const progress = Math.max(0, Math.min(1, scrolled / totalScrollable));
-      setScrollProgress(progress);
+  const activeTitan = TITANS_DATA[activeTitanIndex];
 
-      const idx = Math.min(TITANS_DATA.length - 1, Math.floor(progress * TITANS_DATA.length * 0.99));
-      setActiveTitanIndex(idx);
-    };
+  const handleSelectTitan = (index: number) => {
+    setActiveTitanIndex(index);
+    soundEngine.triggerThump(35, 0.15, 0.4);
+    if (TITANS_DATA[index].height.includes('60') || TITANS_DATA[index].height.includes('200') || TITANS_DATA[index].height.includes('17')) {
+      soundEngine.triggerSteamHiss();
+    } else {
+      soundEngine.triggerBladeWhoosh();
+    }
+  };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const handleFocusChange = (mode: 'normal' | 'close_up' | 'hardened') => {
-    setFocusMode(mode);
+  const handleViewMode = (mode: 'normal' | 'close_up' | 'hardened') => {
+    setViewMode(mode);
     if (mode === 'hardened') soundEngine.triggerSteamHiss();
     else if (mode === 'close_up') soundEngine.triggerThump(45, 0.1, 0.3);
     else soundEngine.triggerBladeWhoosh();
   };
 
-  // Horizontal traversal across all 9 titans
-  const ribbonX = -scrollProgress * 550; // in vw
-
   const getImageStyle = () => {
-    switch (focusMode) {
+    switch (viewMode) {
       case 'close_up':
         return 'scale-125 origin-top contrast-140 brightness-95';
       case 'hardened':
@@ -54,181 +43,192 @@ export const TitanSection: React.FC<TitanSectionProps> = ({ isSpoilerSafe }) => 
   };
 
   return (
-    <div
-      ref={containerRef}
-      id="titans"
-      className="relative h-[450vh] w-full bg-[#060608] select-none"
-    >
-      {/* Sticky Cinematic Viewport */}
-      <div className="sticky top-0 h-[100dvh] w-full overflow-hidden flex flex-col justify-between py-4 sm:py-6 md:py-8">
-        
-        {/* Background Atmospheric Glow */}
-        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-          <img
-            src={TITANS_DATA[activeTitanIndex].image}
-            alt="Titan Atmosphere"
-            className="w-full h-full object-cover filter blur-3xl opacity-20 scale-125 transition-all duration-700"
-            referrerPolicy="no-referrer"
-          />
-          <div className="absolute inset-0 bg-[#060608]/85" />
-        </div>
+    <section id="titans" className="relative w-full bg-[#050507] py-16 sm:py-24 px-4 sm:px-6 md:px-10 select-none border-t border-[#1C1C20]">
+      {/* Atmospheric Ambient Glow */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-20">
+        <img
+          src={activeTitan.image}
+          alt="Titan Ambient Glow"
+          className="w-full h-full object-cover filter blur-3xl saturate-150 scale-125 transition-all duration-700"
+          referrerPolicy="no-referrer"
+        />
+        <div className="absolute inset-0 bg-[#050507]/90" />
+      </div>
 
-        {/* Top Header Tag & View Selector */}
-        <div className="relative z-20 max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-10 flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#1E1E22] pb-3 sm:pb-4 gap-3">
+      <div className="relative z-10 max-w-7xl mx-auto space-y-8 sm:space-y-12">
+        
+        {/* Section Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-[#1E1E22] pb-6 gap-4">
           <div>
-            <div className="flex items-center gap-2 sm:gap-3 mb-0.5 sm:mb-1">
+            <div className="flex items-center gap-2 sm:gap-3 mb-1.5">
               <span className="w-2 h-2 rounded-full bg-[#E65C5C] shrink-0" />
-              <span className="font-mono text-[10px] sm:text-xs text-[#8C897F] tracking-[0.2em] sm:tracking-[0.3em] uppercase">
-                THE NINE INHERITORS • ANCESTRAL BLOODLINE
+              <span className="font-mono text-[10px] sm:text-xs text-[#8C897F] tracking-[0.25em] uppercase">
+                ANCESTRAL BLOODLINE • YMIR'S NINE INHERITORS
               </span>
             </div>
-            <h2 className="font-display text-2xl sm:text-4xl lg:text-5xl tracking-tight text-[#E6E0D1]">
+            <h2 className="font-display text-3xl sm:text-5xl lg:text-6xl tracking-tight text-[#E6E0D1]">
               THE NINE TITANS
             </h2>
           </div>
 
-          {/* Simple View Controls */}
-          <div className="flex items-center gap-1.5 sm:gap-2 font-mono text-[10px] sm:text-xs overflow-x-auto pb-1 sm:pb-0">
-            <span className="text-[#666] uppercase text-[10px] mr-1 hidden sm:inline">VIEW:</span>
+          {/* View Perspective Switcher */}
+          <div className="flex items-center gap-2 font-mono text-xs overflow-x-auto pb-1 sm:pb-0">
+            <span className="text-[#666] text-[10px] uppercase mr-1 hidden sm:inline">MODE:</span>
             <button
-              onClick={() => handleFocusChange('normal')}
-              className={`px-2.5 sm:px-3 py-1.5 border transition-all cursor-pointer min-h-[34px] sm:min-h-0 flex items-center ${
-                focusMode === 'normal'
-                  ? 'border-[#7A1E1E] bg-[#1C1212] text-[#E6E0D1]'
-                  : 'border-[#2A2A2E] text-[#888] hover:text-[#E6E0D1]'
+              onClick={() => handleViewMode('normal')}
+              className={`px-3 py-1.5 border transition-all cursor-pointer min-h-[36px] ${
+                viewMode === 'normal'
+                  ? 'border-[#7A1E1E] bg-[#221010] text-[#E6E0D1]'
+                  : 'border-[#2A2A30] bg-[#0E0E12] text-[#888] hover:text-white'
               }`}
             >
               FULL VIEW
             </button>
             <button
-              onClick={() => handleFocusChange('close_up')}
-              className={`px-2.5 sm:px-3 py-1.5 border transition-all cursor-pointer flex items-center gap-1 min-h-[34px] sm:min-h-0 ${
-                focusMode === 'close_up'
-                  ? 'border-[#C5A880] bg-[#1E1A12] text-[#E6E0D1]'
-                  : 'border-[#2A2A2E] text-[#888] hover:text-[#E6E0D1]'
+              onClick={() => handleViewMode('close_up')}
+              className={`px-3 py-1.5 border transition-all cursor-pointer flex items-center gap-1.5 min-h-[36px] ${
+                viewMode === 'close_up'
+                  ? 'border-[#C5A880] bg-[#221D12] text-[#E6E0D1]'
+                  : 'border-[#2A2A30] bg-[#0E0E12] text-[#888] hover:text-white'
               }`}
             >
-              <ZoomIn className="w-3 h-3 text-[#C5A880]" /> CLOSE-UP
+              <ZoomIn className="w-3.5 h-3.5 text-[#C5A880]" /> CLOSE-UP
             </button>
             <button
-              onClick={() => handleFocusChange('hardened')}
-              className={`px-2.5 sm:px-3 py-1.5 border transition-all cursor-pointer flex items-center gap-1 min-h-[34px] sm:min-h-0 ${
-                focusMode === 'hardened'
-                  ? 'border-[#6B7C6B] bg-[#121A14] text-[#E6E0D1]'
-                  : 'border-[#2A2A2E] text-[#888] hover:text-[#E6E0D1]'
+              onClick={() => handleViewMode('hardened')}
+              className={`px-3 py-1.5 border transition-all cursor-pointer flex items-center gap-1.5 min-h-[36px] ${
+                viewMode === 'hardened'
+                  ? 'border-[#6B7C6B] bg-[#122216] text-[#E6E0D1]'
+                  : 'border-[#2A2A30] bg-[#0E0E12] text-[#888] hover:text-white'
               }`}
             >
-              <Shield className="w-3 h-3 text-[#6B7C6B]" /> HARDENED
+              <Shield className="w-3.5 h-3.5 text-[#6B7C6B]" /> HARDENED
             </button>
           </div>
         </div>
 
-        {/* Horizontal 3D Isometric Ribbon of Titans */}
-        <div
-          className="relative z-10 w-[600vw] flex items-center px-4 sm:px-12 gap-6 sm:gap-12 transition-transform duration-100 ease-out will-change-transform my-auto"
-          style={{
-            transform: `translate3d(${ribbonX}vw, 0, 0)`,
-            perspective: '1200px',
-          }}
-        >
+        {/* 9 Titans Tactile Avatar Navigator / Ribbon */}
+        <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-9 gap-2 sm:gap-2.5">
           {TITANS_DATA.map((titan, idx) => {
-            const isCurrent = idx === activeTitanIndex;
-            const isOdd = idx % 2 === 1;
-
+            const isSelected = idx === activeTitanIndex;
             return (
-              <div
+              <button
                 key={titan.id}
-                className={`relative w-[88vw] sm:w-[65vw] max-w-[760px] max-h-[72dvh] sm:max-h-none overflow-y-auto sm:overflow-visible shrink-0 border transition-all duration-700 p-4 sm:p-6 md:p-8 bg-[#09090C]/95 backdrop-blur-md flex flex-col md:flex-row gap-4 sm:gap-6 items-center ${
-                  isCurrent
-                    ? 'border-[#7A1E1E] shadow-2xl scale-[1.01] sm:scale-[1.03] z-20 ring-1 ring-[#7A1E1E]/50'
-                    : 'border-[#222226] opacity-70 scale-95'
+                onClick={() => handleSelectTitan(idx)}
+                className={`group relative p-2 text-left border transition-all duration-300 cursor-pointer rounded-sm overflow-hidden flex flex-col justify-between h-24 sm:h-28 ${
+                  isSelected
+                    ? 'bg-[#181111] border-[#E65C5C] shadow-lg ring-1 ring-[#E65C5C]/50'
+                    : 'bg-[#0A0A0E] border-[#1C1C22] hover:border-[#444] opacity-75 hover:opacity-100'
                 }`}
-                style={{
-                  transform: `translate3d(0, ${isOdd ? '10px' : '-10px'}, 0) rotate(${isOdd ? '-0.5deg' : '0.5deg'})`,
-                }}
               >
-                {/* Titan Artwork Frame */}
-                <div className="relative w-full md:w-1/2 h-36 sm:h-52 md:h-auto md:aspect-[4/3] bg-black overflow-hidden border border-[#1C1C20] group shrink-0">
+                <div className="relative z-10 font-mono text-[9px] sm:text-[10px] text-[#888] flex justify-between">
+                  <span>0{idx + 1}</span>
+                  <span className={isSelected ? 'text-[#E65C5C] font-bold' : 'text-[#666]'}>{titan.height}</span>
+                </div>
+                
+                <div className="relative z-10">
+                  <h4 className="font-display font-bold text-xs sm:text-sm text-[#E6E0D1] leading-tight line-clamp-1">
+                    {titan.name.replace(' Titan', '')}
+                  </h4>
+                  <span className="font-editorial text-[10px] text-[#C5A880] block mt-0.5 line-clamp-1">
+                    {titan.japaneseName}
+                  </span>
+                </div>
+
+                {/* Subdued thumbnail bg */}
+                <div className="absolute inset-0 z-0 opacity-20 group-hover:opacity-35 transition-opacity">
                   <img
                     src={titan.image}
                     alt={titan.name}
-                    className={`w-full h-full object-cover transition-all duration-700 ${getImageStyle()} group-hover:scale-105`}
+                    className="w-full h-full object-cover filter contrast-125"
                     referrerPolicy="no-referrer"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-85 pointer-events-none" />
-
-                  <div className="absolute top-2.5 left-2.5 font-mono text-[10px] sm:text-[11px] bg-black/80 px-2 sm:px-2.5 py-0.5 sm:py-1 border border-[#333] text-[#E6E0D1]">
-                    {titan.number} • {titan.height}
-                  </div>
-
-                  <div className="absolute bottom-2.5 left-2.5 right-2.5 flex justify-between items-end pointer-events-none">
-                    <span className="font-editorial text-xs sm:text-sm text-[#C5A880]">
-                      {titan.japaneseName}
-                    </span>
-                    <span className="font-mono text-[10px] sm:text-xs text-[#8C897F]">
-                      {titan.classification}
-                    </span>
-                  </div>
                 </div>
-
-                {/* Titan Description & Details */}
-                <div className="w-full md:w-1/2 space-y-2 sm:space-y-4">
-                  <div>
-                    <span className="font-mono text-[10px] sm:text-xs text-[#C5A880] tracking-widest uppercase block">
-                      {titan.classification}
-                    </span>
-                    <h3 className="font-display font-black text-2xl sm:text-4xl text-[#E6E0D1] leading-none mt-0.5 sm:mt-1">
-                      {titan.name}
-                    </h3>
-                  </div>
-
-                  <p className="text-[11px] sm:text-xs md:text-sm text-[#B5B0A4] font-light leading-relaxed font-sans line-clamp-3 sm:line-clamp-none">
-                    {titan.description}
-                  </p>
-
-                  <div className="flex flex-wrap gap-1 sm:gap-1.5 pt-0.5 sm:pt-1">
-                    {titan.abilities.map((ab, i) => (
-                      <span key={i} className="px-1.5 sm:px-2 py-0.5 bg-[#121216] border border-[#26262C] font-mono text-[9px] sm:text-[10px] text-[#C5A880]">
-                        {ab}
-                      </span>
-                    ))}
-                  </div>
-
-                  <div className="pt-2 sm:pt-3 border-t border-[#1C1C20] flex items-center justify-between font-mono text-[10px] sm:text-xs">
-                    <span className="text-[#666]">CURRENT SHIFTER:</span>
-                    <span className="text-[#E6E0D1] font-bold">
-                      {isSpoilerSafe && titan.spoilerWarning ? 'HIDDEN (SPOILER)' : titan.currentShifter}
-                    </span>
-                  </div>
-                </div>
-              </div>
+              </button>
             );
           })}
         </div>
 
-        {/* Bottom Horizontal Progress Bar */}
-        <div className="relative z-20 max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-10 flex items-center justify-between font-mono text-[10px] sm:text-xs text-[#8C897F] border-t border-[#1C1C20] pt-2.5 sm:pt-4">
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <span className="text-[#E65C5C] font-bold">
-              0{activeTitanIndex + 1} / 0{TITANS_DATA.length}
-            </span>
-            <span className="text-[#555]">•</span>
-            <span className="text-[#E6E0D1] uppercase truncate max-w-[140px] sm:max-w-none">
-              {TITANS_DATA[activeTitanIndex].name}
-            </span>
-          </div>
+        {/* Active Titan Cinematic Stage */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-[#09090D] border border-[#222228] p-5 sm:p-8 rounded-sm shadow-2xl">
+          
+          {/* Main Titan Artwork Frame */}
+          <div className="lg:col-span-7 relative aspect-[16/10] sm:aspect-[16/10] bg-black overflow-hidden border border-[#1C1C22] rounded-sm group">
+            <img
+              src={activeTitan.image}
+              alt={activeTitan.name}
+              className={`w-full h-full object-cover transition-all duration-700 ${getImageStyle()} group-hover:scale-105`}
+              referrerPolicy="no-referrer"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-85 pointer-events-none" />
 
-          <div className="flex items-center gap-2">
-            <span className="text-[#666] hidden sm:inline">SCROLL TO GLIDE THROUGH TITANS</span>
-            <div className="w-20 sm:w-32 h-1 bg-[#1A1A1E] rounded-full overflow-hidden">
-              <div
-                className="h-full bg-[#E65C5C] transition-all duration-100"
-                style={{ width: `${Math.round(scrollProgress * 100)}%` }}
-              />
+            {/* Badges */}
+            <div className="absolute top-3 left-3 font-mono text-xs bg-black/80 px-2.5 py-1 border border-[#333] text-[#E6E0D1] flex items-center gap-1.5 backdrop-blur-sm">
+              <Flame className="w-3.5 h-3.5 text-[#E65C5C]" />
+              <span>{activeTitan.number} • {activeTitan.height} HEIGHT</span>
+            </div>
+
+            <div className="absolute bottom-3 left-3 right-3 flex justify-between items-end">
+              <span className="font-editorial text-sm sm:text-base text-[#C5A880]">
+                {activeTitan.japaneseName}
+              </span>
+              <span className="font-mono text-xs text-[#E65C5C] bg-[#220B0B] border border-[#7A1E1E] px-2 py-0.5 uppercase">
+                {activeTitan.classification}
+              </span>
             </div>
           </div>
+
+          {/* Titan Dossier & Shifter Profile */}
+          <div className="lg:col-span-5 space-y-4">
+            <div>
+              <span className="font-mono text-[10px] sm:text-xs text-[#C5A880] tracking-widest uppercase block">
+                {activeTitan.classification}
+              </span>
+              <h3 className="font-display font-black text-3xl sm:text-4xl text-[#E6E0D1] mt-0.5">
+                {activeTitan.name}
+              </h3>
+            </div>
+
+            <p className="text-xs sm:text-sm text-[#B5B0A4] font-light leading-relaxed font-sans">
+              {activeTitan.description}
+            </p>
+
+            {/* Combat Traits / Abilities */}
+            <div className="space-y-1.5 pt-2">
+              <span className="font-mono text-[10px] text-[#8C897F] tracking-wider uppercase block">
+                COMBAT CAPABILITIES & MUTATIONS:
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {activeTitan.abilities.map((ab, i) => (
+                  <span
+                    key={i}
+                    className="px-2.5 py-1 bg-[#121218] border border-[#282832] font-mono text-xs text-[#E6E0D1] flex items-center gap-1"
+                  >
+                    <Zap className="w-3 h-3 text-[#C5A880]" />
+                    {ab}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Shifter Profile Card */}
+            <div className="p-3.5 bg-[#120F0F] border border-[#301616] space-y-1 font-mono text-xs mt-3">
+              <div className="flex justify-between items-center">
+                <span className="text-[#888]">CURRENT VESSEL / SHIFTER</span>
+                <span className="text-[#E65C5C] font-bold">
+                  {isSpoilerSafe && activeTitan.spoilerWarning ? '[ REDACTED SPOILER ]' : activeTitan.currentShifter}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-[11px] text-[#666] pt-1 border-t border-[#201212]">
+                <span>INHERITANCE CYCLE</span>
+                <span>CURSE OF YMIR: 13 YEARS</span>
+              </div>
+            </div>
+          </div>
+
         </div>
+
       </div>
-    </div>
+    </section>
   );
 };

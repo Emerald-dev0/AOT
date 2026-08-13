@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowUp, ExternalLink } from 'lucide-react';
+import { ArrowUp } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   const scrollToTop = () => {
@@ -7,54 +7,52 @@ export const Footer: React.FC = () => {
   };
 
   return (
-    <footer id="footer" className="bg-[#050505] text-[#8C897F] border-t border-[#18181A] py-12 sm:py-16 font-mono text-xs">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-8 border-b border-[#141416]">
-          <div>
-            <div className="flex items-center gap-2 text-[#E6E0D1] font-display text-lg tracking-widest mb-1">
+    <footer id="footer" className="bg-[#050507] text-[#7A776F] border-t border-[#18181C] py-10 sm:py-14 font-mono text-xs">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-10">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pb-8 border-b border-[#141418]">
+          <div className="flex items-center gap-3">
+            <span className="font-display tracking-[0.2em] text-[#E6E0D1] text-sm font-bold">
               ATTACK ON TITAN
-            </div>
-            <p className="text-[#666] text-xs font-sans">
-              進撃の巨人 • HAJIME ISAYAMA TRIBUTE ARCHIVE
-            </p>
+            </span>
+            <span className="text-[#444]">/</span>
+            <span className="text-[#8C897F] text-[11px] tracking-wider uppercase">
+              進撃の巨人
+            </span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4">
-            {/* Designed by Emerald Link with high contrast */}
+          <div className="flex items-center gap-6">
             <a
               href="https://emerald.pxxl.click"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-[#021f14] hover:bg-[#053322] border border-[#10b981] hover:border-[#34d399] text-[#e6fbf3] hover:text-white rounded-sm transition-all duration-200 shadow-md group cursor-pointer"
+              className="text-[#999] hover:text-[#E6E0D1] transition-colors duration-200 tracking-wider text-[11px] group cursor-pointer"
               id="designed-by-emerald"
             >
-              <span className="tracking-wider font-semibold text-xs">
-                Designed by <span className="text-[#34d399] group-hover:text-[#6ee7b7] font-bold underline underline-offset-2 decoration-[#10b981]">Emerald</span>
+              Designed by{' '}
+              <span className="text-[#C5A880] group-hover:text-white underline underline-offset-4 decoration-[#C5A880]/50 transition-colors">
+                Emerald
               </span>
-              <ExternalLink className="w-3.5 h-3.5 text-[#34d399] group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
             </a>
 
             <button
               onClick={scrollToTop}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-[#0E0E10] hover:bg-[#161619] border border-[#222] hover:border-[#444] text-[#E6E0D1] transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 text-[#888] hover:text-[#E6E0D1] transition-colors duration-200 text-[11px] tracking-wider uppercase cursor-pointer"
             >
-              <span>RETURN TO CREST</span>
-              <ArrowUp className="w-3.5 h-3.5 text-[#8C897F]" />
+              <span>TOP</span>
+              <ArrowUp className="w-3 h-3 text-[#666] group-hover:text-[#E6E0D1]" />
             </button>
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-[11px] text-[#555] font-sans">
-          <p className="max-w-2xl leading-relaxed">
-            An unofficial, non-profit artistic tribute and interactive exhibition. All Attack on Titan (進撃の巨人) concepts, characters, and imagery belong to Hajime Isayama, Kodansha, Wit Studio, and MAPPA.
+        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] text-[#555]">
+          <p className="text-center sm:text-left">
+            Unofficial tribute archive. All characters, mythology, and assets © Hajime Isayama / Kodansha / WIT Studio / MAPPA.
           </p>
-          <div className="font-mono text-[#444] text-[10px] whitespace-nowrap">
-            PARADIS ARCHIVE • 845-854
+          <div className="text-[#444] tracking-widest uppercase">
+            PARADIS ARCHIVE
           </div>
         </div>
       </div>
     </footer>
   );
 };
-
-

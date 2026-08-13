@@ -7,9 +7,9 @@ const CHAPTERS = [
   { id: 'titans', title: 'THE NINE TITANS', label: '03' },
   { id: 'scale', title: 'SIZE COMPARISON', label: '04' },
   { id: 'soldiers', title: 'THE SOLDIERS', label: '05' },
-  { id: 'archive', title: 'MANEUVER GEAR', label: '06' },
+  { id: 'arsenal', title: 'MANEUVER GEAR', label: '06' },
   { id: 'world', title: 'WORLD TERRITORIES', label: '07' },
-  { id: 'story', title: 'STORY TIMELINE', label: '08' },
+  { id: 'timeline', title: 'STORY TIMELINE', label: '08' },
   { id: 'freedom', title: 'FINAL HORIZON', label: '09' },
 ];
 

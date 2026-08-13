@@ -1,243 +1,202 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { ASSETS } from '../data/aotData';
 import { soundEngine } from '../utils/soundEngine';
-import { Crosshair, Zap, Shield, Wind } from 'lucide-react';
+import { Crosshair, Zap, Shield, Flame, Activity, Disc } from 'lucide-react';
 
-interface GearModule {
-  id: string;
-  name: string;
-  category: string;
-  japaneseName: string;
-  description: string;
-  tacticalRole: string;
-  soundType: 'steam' | 'blade' | 'rumble';
-}
-
-const GEAR_MODULES: GearModule[] = [
+const GEAR_MODULES = [
   {
-    id: 'odm-drive',
-    name: 'OMNI-DIRECTIONAL MOBILITY DRIVE',
-    category: 'AERIAL PROPULSION',
-    japaneseName: '立体機動装置',
-    description: 'Waist-mounted compressed gas turbines powering dual grappling hooks and wire spools. Enables three-dimensional high-speed combat across urban landscapes and tall trees.',
-    tacticalRole: 'Rapid high-speed navigation and vertical ascent to reach Titan nape targets.',
-    soundType: 'steam',
+    id: 'gas-unit',
+    name: 'ICEBURST GAS PROPULSION CANISTERS',
+    category: 'PROPULSION DYNAMICS',
+    japaneseName: '氷爆ガス高圧ボンベ',
+    description: 'Dual compressed gas cylinders forged from rare Iceburst stone extracted from the deep Paradis caverns. Emits directional bursts through dual-thrust nozzles to slingshot soldiers across 3D vector axes.',
+    tacticalRole: 'High-speed acceleration, mid-air vector reorientation, and gravitational inertia counteraction.',
+    specs: { pressure: '240 BAR', capacity: '18 BURSTS', weight: '8.4 KG' },
   },
   {
     id: 'blades',
-    name: 'ULTRAHARD STEEL SNAP-BLADES',
-    category: 'COMBAT WEAPONRY',
+    name: 'HIGH-CARBON ULTIMATE STEEL BLADES',
+    category: 'MELEE SEVERING',
     japaneseName: '超硬質ブレード',
-    description: 'Forged from specialized blast furnace steel infused with iceburst stone. Flexible yet razor sharp, segmented for instant replacement when dulled by Titan flesh.',
-    tacticalRole: 'Precision 1-meter lethal slicing cuts across the back of the Titan neck.',
-    soundType: 'blade',
+    description: 'Segmented snap-on sword blades forged from high-carbon ultimate steel. Elastic yet razor-sharp, engineered specifically to slice through the rubbery, regenerative flesh of Titan napes (1m wide by 10cm deep).',
+    tacticalRole: 'Severing cervical nerves at the nape of humanoid and abnormal Titans before flesh heals.',
+    specs: { alloy: 'ULTIMATE STEEL', length: '88 CM', edgeLife: '3-4 KILLS' },
+  },
+  {
+    id: 'grapple-winch',
+    name: 'PNEUMATIC WIRE WINCH & HARPOONS',
+    category: 'KINETIC TRAVERSAL',
+    japaneseName: '射出装置・ワイヤー巻取機',
+    description: 'Twin high-tensile wire spools connected to steel-tipped anchor pitons. Fired using pneumatic pressure into brick facades, tree barks, or Titan musculature, with internal high-torque turbine recoil.',
+    tacticalRole: 'Anchoring and swinging around giant tree trunks and titan limbs at speeds exceeding 70 km/h.',
+    specs: { wireLength: '65 METERS', tensileStrength: '1,200 KG', motorSpeed: '4,500 RPM' },
   },
   {
     id: 'thunder-spears',
-    name: 'THUNDER SPEAR ROCKETS',
-    category: 'ANTI-ARMOR EXPLOSIVES',
-    japaneseName: '雷槍',
-    description: 'Arm-mounted rocket munitions detonated via pull-wire cords. Engineered specifically to shatter hardened Titan armor that deflects steel blades.',
-    tacticalRole: 'Penetrates through Armored Titan plates and heavy crystal protection.',
-    soundType: 'rumble',
-  },
-  {
-    id: 'anti-personnel',
-    name: 'ANTI-PERSONNEL GEAR',
-    category: 'URBAN BALLISTICS',
-    japaneseName: '対人立体機動装置',
-    description: 'Modified maneuver harness equipped with dual shotgun-pistol triggers and back-mounted propulsion chambers, created by the Interior Police.',
-    tacticalRole: 'Lethal medium-range firearm combat against human targets and military forces.',
-    soundType: 'blade',
+    name: 'ANTI-ARMOR THUNDER SPEARS',
+    category: 'EXPLOSIVE ORDNANCE',
+    japaneseName: '雷槍 (RAISOU)',
+    description: 'Rocket-propelled explosive spears mounted on forearm braces. Designed specifically to puncture and shatter the hardened crystalline armor of the Armored Titan before detonating internally via fuze wire.',
+    tacticalRole: 'Penetrating hardened crystal armor plate and destroying fortified defense structures.',
+    specs: { explosiveYield: 'HIGH TNT EQUIVALENT', range: '35 METERS', trigger: 'FUZE PIN' },
   },
 ];
 
 export const SurveyCorpsArchive: React.FC = () => {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const [scrollProgress, setScrollProgress] = useState(0);
   const [activeGearIndex, setActiveGearIndex] = useState(0);
-  const [isFiring, setIsFiring] = useState<number | null>(null);
+  const [isFiring, setIsFiring] = useState(false);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const totalScrollable = containerRef.current.scrollHeight - window.innerHeight;
-      if (totalScrollable <= 0) return;
-      const scrolled = -rect.top;
-      const progress = Math.max(0, Math.min(1, scrolled / totalScrollable));
-      setScrollProgress(progress);
+  const activeGear = GEAR_MODULES[activeGearIndex];
 
-      const idx = Math.min(GEAR_MODULES.length - 1, Math.floor(progress * GEAR_MODULES.length * 0.99));
-      setActiveGearIndex(idx);
-    };
+  const handleTestTrigger = () => {
+    setIsFiring(true);
+    soundEngine.triggerThump(30, 0.2, 0.5);
+    soundEngine.triggerSteamHiss();
+    soundEngine.triggerBladeWhoosh();
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const handleTestTrigger = (idx: number) => {
-    setIsFiring(idx);
-    const mod = GEAR_MODULES[idx];
-    if (mod.soundType === 'steam') soundEngine.triggerSteamHiss();
-    else if (mod.soundType === 'blade') soundEngine.triggerBladeWhoosh();
-    else soundEngine.triggerThump(30, 0.2, 0.5);
-
-    setTimeout(() => setIsFiring(null), 400);
+    setTimeout(() => {
+      setIsFiring(false);
+    }, 500);
   };
 
-  const gearTrackX = -scrollProgress * 280; // in vw
+  const handleSelectModule = (index: number) => {
+    setActiveGearIndex(index);
+    soundEngine.triggerBladeWhoosh();
+  };
 
   return (
-    <div
-      ref={containerRef}
-      id="archive"
-      className="relative h-[300vh] w-full bg-[#070709] select-none"
-    >
-      {/* Sticky Viewport */}
-      <div className="sticky top-0 h-[100dvh] w-full overflow-hidden flex flex-col justify-between py-4 sm:py-6 md:py-8">
-        
-        {/* Background Ambience */}
-        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-          <img
-            src={ASSETS.scoutOdmAction}
-            alt="Survey Corps Equipment"
-            className="w-full h-full object-cover filter blur-3xl opacity-15 scale-110"
-            referrerPolicy="no-referrer"
-          />
-          <div className="absolute inset-0 bg-[#070709]/90" />
-        </div>
+    <section id="arsenal" className="relative w-full bg-[#060608] py-16 sm:py-24 px-4 sm:px-6 md:px-10 select-none border-t border-[#1C1C20]">
+      {/* Blueprint Grid Accent */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#141418_1px,transparent_1px),linear-gradient(to_bottom,#141418_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none opacity-40" />
 
-        {/* Top Header Tag */}
-        <div className="relative z-20 max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-10 flex items-center justify-between border-b border-[#1E1E22] pb-3 sm:pb-4 gap-2">
+      <div className="relative z-10 max-w-7xl mx-auto space-y-8 sm:space-y-12">
+        
+        {/* Section Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-[#1E1E22] pb-6 gap-4">
           <div>
-            <div className="flex items-center gap-2 sm:gap-3 mb-0.5 sm:mb-1">
+            <div className="flex items-center gap-2 sm:gap-3 mb-1.5">
               <span className="w-2 h-2 rounded-full bg-[#6B7C6B] shrink-0" />
-              <span className="font-mono text-[10px] sm:text-xs text-[#8C897F] tracking-[0.2em] sm:tracking-[0.3em] uppercase">
-                COMBAT ARSENAL • TACTICAL BLUEPRINTS
+              <span className="font-mono text-[10px] sm:text-xs text-[#8C897F] tracking-[0.25em] uppercase">
+                COMBAT ARSENAL • TACTICAL BLUEPRINTS & SCHEMATICS
               </span>
             </div>
-            <h2 className="font-display text-2xl sm:text-4xl lg:text-5xl tracking-tight text-[#E6E0D1]">
+            <h2 className="font-display text-3xl sm:text-5xl lg:text-6xl tracking-tight text-[#E6E0D1]">
               3D MANEUVER GEAR
             </h2>
           </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-2 font-mono text-[10px] sm:text-xs text-[#C5A880] shrink-0">
-            <Crosshair className="w-3.5 h-3.5 text-[#6B7C6B]" />
-            <span className="hidden sm:inline">SCOUT CORPS COMBAT PROTOCOLS</span>
-            <span className="sm:hidden">PROTOCOLS</span>
+          <div className="flex items-center gap-2 font-mono text-xs text-[#C5A880] shrink-0">
+            <Crosshair className="w-4 h-4 text-[#6B7C6B]" />
+            <span>SCOUT CORPS COMBAT PROTOCOLS</span>
           </div>
         </div>
 
-        {/* Exploded Blueprint Schematic Horizontal Runway */}
-        <div
-          className="relative z-10 w-[380vw] flex items-center px-4 sm:px-12 gap-6 sm:gap-16 transition-transform duration-100 ease-out will-change-transform my-auto"
-          style={{ transform: `translate3d(${gearTrackX}vw, 0, 0)` }}
-        >
+        {/* Blueprint Module Selector Tabs */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {GEAR_MODULES.map((gear, idx) => {
-            const isCurrent = idx === activeGearIndex;
-            const firingThis = isFiring === idx;
-
+            const isSelected = idx === activeGearIndex;
             return (
-              <div
+              <button
                 key={gear.id}
-                className={`relative w-[88vw] sm:w-[70vw] max-w-[820px] max-h-[72dvh] sm:max-h-none overflow-y-auto sm:overflow-visible shrink-0 border transition-all duration-700 p-4 sm:p-6 md:p-8 bg-[#09090C]/95 backdrop-blur-md flex flex-col md:flex-row gap-4 sm:gap-8 items-center ${
-                  isCurrent
-                    ? 'border-[#6B7C6B] shadow-2xl scale-[1.01] sm:scale-[1.02] ring-1 ring-[#6B7C6B]/40'
-                    : 'border-[#222226] opacity-60 scale-95'
+                onClick={() => handleSelectModule(idx)}
+                className={`p-4 text-left border transition-all duration-300 cursor-pointer rounded-sm flex flex-col justify-between ${
+                  isSelected
+                    ? 'bg-[#101612] border-[#10b981] shadow-xl ring-1 ring-[#10b981]/40'
+                    : 'bg-[#09090C] border-[#1C1C22] hover:border-[#333] hover:bg-[#0E0E12] opacity-75 hover:opacity-100'
                 }`}
               >
-                {/* Artwork Viewport */}
-                <div className="relative w-full md:w-1/2 h-36 sm:h-52 md:h-auto md:aspect-[16/10] bg-black overflow-hidden border border-[#1A1A1E] group shrink-0">
-                  <img
-                    src={ASSETS.scoutOdmAction}
-                    alt={gear.name}
-                    className={`w-full h-full object-cover filter transition-all duration-500 ${
-                      firingThis ? 'scale-110 brightness-125 contrast-150' : 'contrast-125 brightness-95 group-hover:scale-105'
-                    }`}
-                    referrerPolicy="no-referrer"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80" />
-
-                  {firingThis && (
-                    <div className="absolute inset-0 bg-red-900/30 animate-pulse pointer-events-none" />
-                  )}
-
-                  <div className="absolute top-2.5 left-2.5 font-mono text-[10px] sm:text-[11px] bg-black/80 px-2 sm:px-2.5 py-0.5 sm:py-1 border border-[#333] text-[#E6E0D1]">
-                    {gear.category}
-                  </div>
-
-                  <div className="absolute bottom-2.5 left-2.5 right-2.5 flex justify-between items-end">
-                    <span className="font-editorial text-xs sm:text-sm text-[#C5A880]">
-                      {gear.japaneseName}
-                    </span>
-                    <button
-                      onClick={() => handleTestTrigger(idx)}
-                      className="px-2.5 sm:px-3 py-1.5 bg-[#7A1E1E] hover:bg-[#962525] border border-[#A83232] text-[10px] sm:text-xs font-mono text-white transition-all cursor-pointer flex items-center gap-1 shadow-md min-h-[34px] sm:min-h-0"
-                    >
-                      <Zap className="w-3.5 h-3.5" />
-                      <span>TEST TRIGGER</span>
-                    </button>
-                  </div>
+                <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#1A1A20] font-mono text-[10px]">
+                  <span className="text-[#8C897F]">MODULE 0{idx + 1}</span>
+                  <span className={isSelected ? 'text-[#34d399] font-bold' : 'text-[#666]'}>
+                    {gear.category.split(' ')[0]}
+                  </span>
                 </div>
-
-                {/* Gear Technical Description */}
-                <div className="w-full md:w-1/2 space-y-2 sm:space-y-4">
-                  <div>
-                    <span className="font-mono text-[10px] sm:text-xs text-[#8C897F] tracking-widest uppercase block">
-                      MODULE 0{idx + 1}
-                    </span>
-                    <h3 className="font-display font-black text-xl sm:text-3xl text-[#E6E0D1] leading-tight mt-0.5 sm:mt-1">
-                      {gear.name}
-                    </h3>
-                  </div>
-
-                  <p className="text-[11px] sm:text-xs md:text-sm text-[#B5B0A4] font-light leading-relaxed font-sans line-clamp-3 sm:line-clamp-none">
-                    {gear.description}
-                  </p>
-
-                  <div className="p-2.5 sm:p-3.5 bg-[#101014] border border-[#222228] space-y-1">
-                    <span className="font-mono text-[10px] sm:text-[11px] text-[#C5A880] tracking-wider uppercase block flex items-center gap-1.5">
-                      <Shield className="w-3.5 h-3.5 text-[#6B7C6B]" /> COMBAT ROLE:
-                    </span>
-                    <p className="text-[11px] sm:text-xs text-[#D0CBC0] font-sans">
-                      {gear.tacticalRole}
-                    </p>
-                  </div>
-
-                  <div className="pt-1.5 sm:pt-2 border-t border-[#1C1C20] flex items-center justify-between font-mono text-[10px] sm:text-xs text-[#8C897F]">
-                    <span>ICEBURST GAS</span>
-                    <span className="text-[#6B7C6B]">STATUS: READY</span>
-                  </div>
-                </div>
-              </div>
+                <h3 className="font-display font-bold text-sm sm:text-base text-[#E6E0D1] leading-tight">
+                  {gear.name}
+                </h3>
+                <span className="font-editorial text-xs text-[#C5A880] mt-1">
+                  {gear.japaneseName}
+                </span>
+              </button>
             );
           })}
         </div>
 
-        {/* Bottom Horizontal Progress Bar */}
-        <div className="relative z-20 max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-10 flex items-center justify-between font-mono text-[10px] sm:text-xs text-[#8C897F] border-t border-[#1C1C20] pt-2.5 sm:pt-4">
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <span className="text-[#6B7C6B] font-bold">
-              0{activeGearIndex + 1} / 0{GEAR_MODULES.length}
-            </span>
-            <span className="text-[#555]">•</span>
-            <span className="text-[#E6E0D1] uppercase truncate max-w-[140px] sm:max-w-none">
-              {GEAR_MODULES[activeGearIndex].name}
-            </span>
-          </div>
+        {/* Technical Schematic Drafting Table */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-[#08080C] border border-[#222228] p-5 sm:p-8 rounded-sm shadow-2xl">
+          
+          {/* Visual Artwork & Test Trigger Frame */}
+          <div className="lg:col-span-6 relative aspect-[16/10] bg-black overflow-hidden border border-[#1C1C22] rounded-sm group">
+            <img
+              src={ASSETS.scoutOdmAction}
+              alt={activeGear.name}
+              className="w-full h-full object-cover filter contrast-125 brightness-95 group-hover:scale-105 transition-transform duration-700"
+              referrerPolicy="no-referrer"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-85 pointer-events-none" />
 
-          <div className="flex items-center gap-2">
-            <span className="text-[#666] hidden sm:inline">SCROLL TO INSPECT GEAR</span>
-            <div className="w-20 sm:w-32 h-1 bg-[#1A1A1E] rounded-full overflow-hidden">
-              <div
-                className="h-full bg-[#6B7C6B] transition-all duration-100"
-                style={{ width: `${Math.round(scrollProgress * 100)}%` }}
-              />
+            {/* Test Trigger Blast Overlay */}
+            {isFiring && (
+              <div className="absolute inset-0 bg-red-900/40 animate-pulse pointer-events-none" />
+            )}
+
+            <div className="absolute top-3 left-3 font-mono text-xs bg-black/80 px-2.5 py-1 border border-[#333] text-[#E6E0D1] backdrop-blur-sm">
+              {activeGear.category}
+            </div>
+
+            <div className="absolute bottom-3 left-3 right-3 flex justify-between items-end">
+              <span className="font-editorial text-sm sm:text-base text-[#C5A880]">
+                {activeGear.japaneseName}
+              </span>
+              <button
+                onClick={handleTestTrigger}
+                className="px-3.5 py-1.5 bg-[#7A1E1E] hover:bg-[#962525] border border-[#A83232] text-xs font-mono text-white transition-all cursor-pointer flex items-center gap-1.5 shadow-lg min-h-[36px]"
+              >
+                <Zap className="w-3.5 h-3.5 text-amber-300" />
+                <span>TEST FIRING TRIGGER</span>
+              </button>
             </div>
           </div>
+
+          {/* Technical Specs & Blueprint Description */}
+          <div className="lg:col-span-6 space-y-4">
+            <div>
+              <span className="font-mono text-xs text-[#8C897F] tracking-widest uppercase block">
+                SCHEMATIC BREAKDOWN • MODULE 0{activeGearIndex + 1}
+              </span>
+              <h3 className="font-display font-black text-2xl sm:text-3xl text-[#E6E0D1] mt-0.5">
+                {activeGear.name}
+              </h3>
+            </div>
+
+            <p className="text-xs sm:text-sm text-[#B5B0A4] font-light leading-relaxed font-sans">
+              {activeGear.description}
+            </p>
+
+            {/* Tactical Role */}
+            <div className="p-3.5 bg-[#101014] border border-[#222228] space-y-1">
+              <span className="font-mono text-[11px] text-[#C5A880] tracking-wider uppercase block flex items-center gap-1.5">
+                <Shield className="w-3.5 h-3.5 text-[#10b981]" /> COMBAT ROLE:
+              </span>
+              <p className="text-xs text-[#D0CBC0] font-sans">
+                {activeGear.tacticalRole}
+              </p>
+            </div>
+
+            {/* Specs Grid */}
+            <div className="grid grid-cols-3 gap-2 pt-2 border-t border-[#1C1C22] font-mono text-xs">
+              {Object.entries(activeGear.specs).map(([key, val]) => (
+                <div key={key} className="p-2.5 bg-[#0E0E12] border border-[#1C1C22]">
+                  <span className="text-[#666] block text-[10px] uppercase">{key}</span>
+                  <span className="text-[#E6E0D1] font-bold text-xs">{val}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
         </div>
+
       </div>
-    </div>
+    </section>
   );
 };
